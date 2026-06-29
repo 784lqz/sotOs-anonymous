@@ -1,0 +1,13 @@
+/test_wire
+/test_keysched
+/test_schedule
+/test_aead
+/test_sign
+/test_parse
+/test_serialize
+/test_driver
+/test_hrr
+/test_ecdhe
+/test_suite
+/test_fingerprint
+*.o

@@ -1,0 +1,3 @@
+# sotOs targets Linux: every text file must check out with LF, also on Windows.
+# CRLF breaks shebangs ("env: bash\r"), shell scripts, and the seL4 build.
+* text=auto eol=lf

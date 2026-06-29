@@ -1,0 +1,33 @@
+# sotOs · host build recipe for tls_probe.bin (sotNet γ-3-γ-2b).
+# NOT invoked by CMake — run manually on a Linux host to (re)build the committed
+# binary:  make -f Makefile.fixture
+#
+# Compiles BearSSL (portable constant-time paths) + tls_probe.c against the guest
+# Alpine musl (src/test/musl-x86_64 · inline-syscall libc), producing a raw
+# static x86_64 ELF that runs as a LUCAS guest. Being raw-syscall + static, the
+# Stage-1 smoke also runs natively on the build host.
+REPO    := $(abspath $(CURDIR)/../../..)
+BEAR    := $(REPO)/external/bearssl
+MUSL    := $(REPO)/src/test/musl-x86_64
+CC      := gcc
+GCCINC  := $(shell $(CC) -print-file-name=include)
+BRFLAGS := -DBR_AES_X86NI=0 -DBR_SSE2=0 -DBR_RDRAND=0 -DBR_POWER8=0
+CFLAGS  := -Os -no-pie -fno-pic -nostdlib -nostdinc -static -fno-stack-protector \
+           -Wl,--build-id=none \
+           -isystem $(MUSL)/include -isystem $(GCCINC) \
+           -I$(BEAR)/inc -I$(BEAR)/src $(BRFLAGS)
+BEAR_SRCS := $(shell find $(BEAR)/src -name '*.c' | sort)
+SRCS    := tls_probe.c $(BEAR_SRCS)
+
+tls_probe.bin: $(SRCS) tls_probe.c
+	$(CC) $(CFLAGS) -o $@ \
+	    $(MUSL)/lib/crt1.o $(MUSL)/lib/crti.o \
+	    $(SRCS) \
+	    $(MUSL)/lib/libc.a \
+	    $(MUSL)/lib/crtn.o
+	strip $@
+	@echo "built $@ ($$(stat -c%s $@) bytes)"
+
+.PHONY: clean
+clean:
+	rm -f tls_probe.bin

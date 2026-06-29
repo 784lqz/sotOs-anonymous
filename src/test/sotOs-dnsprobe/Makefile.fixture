@@ -1,0 +1,17 @@
+# Host build recipe for dnsprobe.bin (Internet Egress Phase 1 · Task 5).
+#   MUSL_CROSS=/tmp/x86_64-linux-musl-cross make -f Makefile.fixture
+# Static musl · no dynamic deps · the binstore loads it like any static fixture
+# (mirrors src/test/sotOs-linux-mmap/Makefile.fixture exactly).
+MUSL_CROSS ?= /tmp/x86_64-linux-musl-cross
+CC := $(MUSL_CROSS)/bin/x86_64-linux-musl-gcc
+
+all: dnsprobe.bin
+
+dnsprobe.bin: dnsprobe.c
+	$(CC) -O2 -static -no-pie -o $@ $<
+	strip $@
+	@echo "built $@ ($$(stat -c%s $@) bytes) · $$(readelf -h $@ | grep -o 'EXEC\|DYN') · static=$$(readelf -d $@ 2>/dev/null | grep -c NEEDED || echo 0) NEEDED"
+
+.PHONY: all clean
+clean:
+	rm -f dnsprobe.bin

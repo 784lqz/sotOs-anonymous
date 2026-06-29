@@ -1,0 +1,14 @@
+session "sotOs" = "HOL" +
+  description "
+    sotOs · Secure Transactional Objects · formal verification.
+
+    Theories:
+      STO_Abstract     · state machine reflecting formal/tla/STO.tla v3
+      STO_Impl         · manual specs of C functions in src/sto/
+      STO_Refinement   · T2 reduced: correspondence between abstract and impl
+  "
+  options [document = false, document_output = "output"]
+  theories
+    STO_Abstract
+    STO_Impl
+    STO_Refinement

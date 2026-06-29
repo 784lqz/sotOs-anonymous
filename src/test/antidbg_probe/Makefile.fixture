@@ -1,0 +1,3 @@
+antidbg_probe.bin: antidbg_probe.c
+	gcc -no-pie -nostdlib -static -Wl,--build-id=none -O2 -o antidbg_probe.bin antidbg_probe.c
+	strip antidbg_probe.bin

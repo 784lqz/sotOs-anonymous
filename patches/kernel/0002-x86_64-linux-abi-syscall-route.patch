@@ -1,0 +1,43 @@
+diff --git a/libsel4/include/sel4/constants.h b/libsel4/include/sel4/constants.h
+index 921eff6..2a0a51d 100644
+--- a/libsel4/include/sel4/constants.h
++++ b/libsel4/include/sel4/constants.h
+@@ -73,12 +73,16 @@ typedef enum {
+ typedef enum {
+     seL4_TCBFlag_NoFlag = 0x0,
+     seL4_TCBFlag_fpuDisabled = 0x1,
++    seL4_TCBFlag_linuxABI = 0x2,   /* sotOs ADR-006: route ALL of this thread's syscalls to
++                                    * UnknownSyscall (Linux-ABI sandbox; avoids the rdx==seL4-
++                                    * selector collision, e.g. poll(timeout=-1) → rdx=-1). */
+ 
+     SEL4_FORCE_LONG_ENUM(seL4_TCBFlag),
+     seL4_TCBFlag_MASK = seL4_TCBFlag_NoFlag
+ #ifdef CONFIG_HAVE_FPU
+                         | seL4_TCBFlag_fpuDisabled
+ #endif
++                        | seL4_TCBFlag_linuxABI
+ } seL4_TCBFlag;
+ 
+ #endif /* !__ASSEMBLER__ */
+diff --git a/src/arch/x86/c_traps.c b/src/arch/x86/c_traps.c
+index c1ed5bc..9a1522f 100644
+--- a/src/arch/x86/c_traps.c
++++ b/src/arch/x86/c_traps.c
+@@ -164,6 +164,17 @@ void VISIBLE NORETURN c_handle_syscall(word_t cptr, word_t msgInfo, syscall_t sy
+         setRegister(NODE_STATE(ksCurThread), FaultIP, getRegister(NODE_STATE(ksCurThread), NextIP) - 2);
+     }
+ 
++    /* sotOs ADR-006 · Linux-ABI sandbox: a flagged thread NEVER makes seL4 syscalls;
++     * route every syscall to UnknownSyscall (where LUCAS dispatches it and ADR-005
++     * restores user RSP), bypassing the fastpath + seL4-syscall dispatch. This stops a
++     * Linux syscall whose rdx lands in seL4's selector range (poll(timeout=-1) → rdx=-1
++     * == SysCall) from being mis-executed as a cap invocation. */
++    if (NODE_STATE(ksCurThread)->tcbFlags & seL4_TCBFlag_linuxABI) {
++        handleUnknownSyscall(syscall);
++        restore_user_context();
++        UNREACHABLE();
++    }
++
+ #ifdef CONFIG_FASTPATH
+     if (syscall == (syscall_t)SysCall) {
+         fastpath_call(cptr, msgInfo);

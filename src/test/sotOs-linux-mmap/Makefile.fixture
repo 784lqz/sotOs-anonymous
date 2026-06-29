@@ -1,0 +1,16 @@
+# Host build recipe for the Wine-prep MAP_FIXED-low gate fixture (musl-cross · musl.cc).
+#   MUSL_CROSS=/tmp/x86_64-linux-musl-cross make -f Makefile.fixture
+# Static musl · no dynamic deps · the binstore loads it like any static fixture.
+MUSL_CROSS ?= /tmp/x86_64-linux-musl-cross
+CC := $(MUSL_CROSS)/bin/x86_64-linux-musl-gcc
+
+all: mapfixed.bin
+
+mapfixed.bin: mapfixed.c
+	$(CC) -O2 -static -no-pie -o $@ $<
+	strip $@
+	@echo "built $@ ($$(stat -c%s $@) bytes) · $$(readelf -h $@ | grep -o 'EXEC\|DYN') · static=$$(readelf -d $@ 2>/dev/null | grep -c NEEDED || echo 0) NEEDED"
+
+.PHONY: all clean
+clean:
+	rm -f mapfixed.bin

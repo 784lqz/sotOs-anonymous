@@ -1,0 +1,21 @@
+# Host build recipe for the slice-2 C4 spike fixtures (musl-cross · musl.cc).
+#   export MUSL_CROSS=/tmp/x86_64-linux-musl-cross ; make -f Makefile.fixture
+# libspikelib.so is NOT baked into the sysroot — it is staged into the per-session
+# upper at runtime so the gate can prove ld-musl resolves a NEEDED .so from there.
+MUSL_CROSS ?= /tmp/x86_64-linux-musl-cross
+CC := $(MUSL_CROSS)/bin/x86_64-linux-musl-gcc
+READELF := $(MUSL_CROSS)/bin/x86_64-linux-musl-readelf
+
+all: libspikelib.so spike_dyn.bin
+
+libspikelib.so: libspikelib.c
+	$(CC) -O2 -fPIC -shared -o $@ $<
+	@echo "built $@ ($$(stat -c%s $@) bytes)"
+
+spike_dyn.bin: spike_dyn.c libspikelib.so
+	$(CC) -O2 -fPIC -pie -o $@ $< -L. -lspikelib -Wl,-rpath,/usr/lib
+	@echo "built $@ · INTERP=$$($(READELF) -l $@ | grep -o '/lib/ld-musl[^]]*') · NEEDED=$$($(READELF) -d $@ | grep NEEDED)"
+
+.PHONY: all clean
+clean:
+	rm -f libspikelib.so spike_dyn.bin

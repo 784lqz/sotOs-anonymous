@@ -1,0 +1,18 @@
+# Host build recipe for the N3/D2 fixtures (musl-cross · musl.cc).
+#   export MUSL_CROSS=/path/to/x86_64-linux-musl-cross ; make -f Makefile.fixture
+MUSL_CROSS ?= /tmp/x86_64-linux-musl-cross
+CC := $(MUSL_CROSS)/bin/x86_64-linux-musl-gcc
+
+all: libonefn.so hello_dyn2.bin
+
+libonefn.so: libonefn.c
+	$(CC) -O2 -fPIC -shared -o $@ $<
+	@echo "built $@ ($$(stat -c%s $@) bytes) · $$(readelf -hl $@ | grep -c PT_LOAD || true) PT_LOAD"
+
+hello_dyn2.bin: hello_dyn2.c libonefn.so
+	$(CC) -O2 -fPIC -pie -o $@ $< -L. -lonefn -Wl,-rpath,/lib
+	@echo "built $@ ($$(stat -c%s $@) bytes) · INTERP=$$(readelf -l $@ | grep -o '/lib/ld-musl[^]]*') · NEEDED=$$(readelf -d $@ | grep NEEDED)"
+
+.PHONY: all clean
+clean:
+	rm -f libonefn.so hello_dyn2.bin

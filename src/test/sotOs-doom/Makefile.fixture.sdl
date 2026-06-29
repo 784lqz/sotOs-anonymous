@@ -1,0 +1,28 @@
+# Phase 2 de-risk: doomgeneric over REAL SDL2, static-musl → doomsdl.bin.
+#   (SDL2 built first: cmake -S external/SDL2 ... → /tmp/sdl2-build/libSDL2.a)
+#   make -f Makefile.fixture.sdl
+MUSL_CROSS ?= /tmp/x86_64-linux-musl-cross
+CC   := $(MUSL_CROSS)/bin/x86_64-linux-musl-gcc
+TOP  := $(shell git rev-parse --show-toplevel)
+DG   := $(TOP)/external/doomgeneric/doomgeneric
+SDL_A   := /tmp/sdl2-build/libSDL2.a
+SDL_INC := $(TOP)/external/SDL2/include
+SDL_CFG := /tmp/sdl2-build/include-config-release/SDL2
+# engine sources, minus every upstream platform shim + the SDL/Allegro sound backends
+SRC := $(filter-out \
+        $(DG)/doomgeneric_xlib.c $(DG)/doomgeneric_sdl.c $(DG)/doomgeneric_allegro.c \
+        $(DG)/doomgeneric_emscripten.c $(DG)/doomgeneric_linuxvt.c $(DG)/doomgeneric_soso.c \
+        $(DG)/doomgeneric_sosox.c $(DG)/doomgeneric_win.c $(DG)/doomgeneric_soundtest.c \
+        $(DG)/i_sdlmusic.c $(DG)/i_sdlsound.c $(DG)/i_allegromusic.c $(DG)/i_allegrosound.c, \
+        $(wildcard $(DG)/*.c))
+
+doomsdl.bin: doomgeneric_sotos_sdl.c $(SRC) $(SDL_A)
+	$(CC) -static -no-pie -fno-pie -O2 -DNORMALUNIX -DLINUX -DDOOMGENERIC \
+	      -I$(DG) -I$(SDL_INC) -I$(SDL_CFG) \
+	      -o $@ doomgeneric_sotos_sdl.c $(SRC) $(SDL_A) -lm -lpthread
+	strip $@
+	@echo "built $@ ($$(stat -c%s $@) bytes)"
+
+.PHONY: clean
+clean:
+	rm -f doomsdl.bin

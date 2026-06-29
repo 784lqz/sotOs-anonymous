@@ -1,0 +1,84 @@
+# seL4 CMake source fetch cache
+.sel4_cache/
+
+# External dependencies, populated by bootstrap.sh
+external/*
+!external/.gitkeep
+external/doomgeneric/
+
+# Symlinks materializing the canonical seL4 layout (created by bootstrap.sh)
+/kernel
+/init-build.sh
+/tools/cmake-tool
+/projects/musllibc
+/projects/util_libs
+/projects/seL4_libs
+/projects/sel4runtime
+/projects/sotOs
+
+# Build artifacts
+build/
+build-*/
+*.o
+*.a
+*.elf
+*.bin
+*.iso
+
+# SP1 · vendored TinyCC runtime artifacts (committed binaries, not build
+# outputs) · the `-run` startup stub planted into sotfs for `tcc -run`.
+!src/test/tcc-bin/runmain.o
+# tcc-libc · vendored TinyCC runtime helper lib for hosted (musl) linking.
+!src/test/tcc-bin/libtcc1.a
+# tcc-libc · vendored STANDARD x86_64 musl (Alpine musl-dev · raw syscall) for
+# the /usr sysroot · separate from the OS x86_64_sel4 musl (see VENDOR.md).
+!src/test/musl-x86_64/lib/libc.a
+!src/test/musl-x86_64/lib/crt1.o
+!src/test/musl-x86_64/lib/crti.o
+!src/test/musl-x86_64/lib/crtn.o
+
+# CMake cache
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+
+# Editor cruft
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+.DS_Store
+
+# Local overrides
+*.local
+
+# Formal verification artifacts
+formal/tla/states/
+formal/tla/*.toolbox/
+
+# Logs
+*.log
+scripts/validate-report.txt
+scripts/soak-report.txt
+external/
+/docs/v1.0-rc1-report.txt
+docs/v1.0-rc1-report.txt
+
+# v1.5 endurance run bundles (large: ~300MB/24h-run · evidence is archived, not committed)
+evidence/
+build/wine-sysroot/
+!src/test/sotOs-linux-gtk/gtk3-demo.bin
+!src/test/sotOs-linux-gtk/widget-factory.bin
+!src/test/sotOs-linux-mmap/mapfixed.bin
+
+# Local agent-tooling (session state, caches, personal overrides — not shared config)
+.superpowers/
+
+# Claude Code
+.claude/*
+
+# Cursor
+.cursor/*
+!.cursor/rules/
+

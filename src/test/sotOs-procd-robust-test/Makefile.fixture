@@ -1,0 +1,3 @@
+procd_robust_test.bin: robust_test.S
+	gcc -no-pie -nostdlib -static -Wl,--build-id=none -o procd_robust_test.bin robust_test.S
+	strip procd_robust_test.bin

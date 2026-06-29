@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1079" height="505" viewBox="0 0 1079 505" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace">
+<rect width="1079" height="505" fill="#0b0e14"/>
+<text x="26" y="30" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="17" fill="#e6edf3" font-weight="bold">sotOs · Asymmetric Truth — Scenario B: external recon</text>
+<text x="26" y="50" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="12" fill="#6b7689">nmap / openssl / ssh against the deception host · a &#x27;real&#x27; box on the wire, fully recorded underneath</text>
+<rect x="26" y="64" width="471" height="381" rx="7" fill="#11141c" stroke="#2a3242" stroke-width="1"/>
+<path d="M26,71 a7,7 0 0 1 7,-7 h457 a7,7 0 0 1 7,7 v23 h-471 z" fill="#1c2230"/>
+<circle cx="42" cy="79.0" r="5" fill="#f85149"/>
+<circle cx="58" cy="79.0" r="5" fill="#e3b341"/>
+<circle cx="74" cy="79.0" r="5" fill="#3fb950"/>
+<text x="90" y="83.0" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="11" fill="#3fb950" font-weight="bold">ATTACKER VIEW  —  what the adversary believes</text>
+<text x="40" y="121" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"><tspan fill="#7ee787">attacker$ </tspan><tspan fill="#e6edf3">nmap -sV honeypot</tspan></text>
+<text x="40" y="140" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"><tspan fill="#c9d1d9">22/tcp  open  ssh      </tspan><tspan fill="#3fb950">OpenSSH 9.6 (proto 2.0)</tspan></text>
+<text x="40" y="159" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"><tspan fill="#c9d1d9">443/tcp open  ssl/http </tspan><tspan fill="#3fb950">nginx 1.18.0</tspan></text>
+<text x="40" y="178" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"></text>
+<text x="40" y="197" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"><tspan fill="#7ee787">attacker$ </tspan><tspan fill="#e6edf3">openssl s_client -connect honeypot:443 -tls1_3</tspan></text>
+<text x="40" y="216" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"><tspan fill="#c9d1d9">  Protocol : </tspan><tspan fill="#3fb950">TLSv1.3</tspan></text>
+<text x="40" y="235" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"><tspan fill="#c9d1d9">  Cipher   : </tspan><tspan fill="#3fb950">TLS_AES_256_GCM_SHA384</tspan></text>
+<text x="40" y="254" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"><tspan fill="#c9d1d9">  Peer cert: CN=honeypot  (TLS handshake OK)</tspan></text>
+<text x="40" y="273" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"><tspan fill="#6b7689">  JA3S/JA4S byte-identical to stock nginx</tspan></text>
+<text x="40" y="292" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"></text>
+<text x="40" y="311" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"><tspan fill="#7ee787">attacker$ </tspan><tspan fill="#e6edf3">ssh admin@honeypot -v</tspan></text>
+<text x="40" y="330" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"><tspan fill="#c9d1d9">  kex: </tspan><tspan fill="#3fb950">curve25519-sha256</tspan><tspan fill="#c9d1d9">  cipher: aes128-ctr</tspan></text>
+<text x="40" y="349" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"><tspan fill="#c9d1d9">  mac: hmac-sha2-256   host key </tspan><tspan fill="#3fb950">validated</tspan></text>
+<text x="40" y="368" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"><tspan fill="#c9d1d9">  admin@honeypot&#x27;s password: </tspan><tspan fill="#e6edf3">█</tspan></text>
+<text x="40" y="387" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"></text>
+<text x="40" y="406" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"><tspan fill="#3fb950">  # looks, smells, fingerprints like a real box</tspan></text>
+<rect x="613" y="64" width="440" height="381" rx="7" fill="#0e1622" stroke="#2a3242" stroke-width="1"/>
+<path d="M613,71 a7,7 0 0 1 7,-7 h426 a7,7 0 0 1 7,7 v23 h-440 z" fill="#1c2230"/>
+<circle cx="629" cy="79.0" r="5" fill="#f85149"/>
+<circle cx="645" cy="79.0" r="5" fill="#e3b341"/>
+<circle cx="661" cy="79.0" r="5" fill="#3fb950"/>
+<text x="677" y="83.0" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="11" fill="#39c5cf" font-weight="bold">OPERATOR VIEW  —  ground truth (serial / sottrace)</text>
+<text x="627" y="121" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"><tspan fill="#6cb6ff">[sottrace] </tspan><tspan fill="#c9d1d9">conn=7 ACCEPT 203.0.113.9:51344 -&gt; :443</tspan></text>
+<text x="627" y="140" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"><tspan fill="#6cb6ff">[sottrace] </tspan><tspan fill="#c9d1d9">conn=7 RESPONSE_PROFILE TLS13 :443 4096 B</tspan></text>
+<text x="627" y="159" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"><tspan fill="#39c5cf">[ja3s] </tspan><tspan fill="#c9d1d9">inbound :443 md5=</tspan><tspan fill="#e6edf3">1af33e16..302c</tspan></text>
+<text x="627" y="178" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"><tspan fill="#6b7689">       == nginx · byte-exact, served by sotOs</tspan></text>
+<text x="627" y="197" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"><tspan fill="#6cb6ff">[sottrace] </tspan><tspan fill="#c9d1d9">conn=8 ACCEPT 203.0.113.9:51902 -&gt; :22</tspan></text>
+<text x="627" y="216" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"><tspan fill="#6cb6ff">[sottrace] </tspan><tspan fill="#c9d1d9">conn=8 RESPONSE_PROFILE SSH :22 1144 B</tspan></text>
+<text x="627" y="235" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"><tspan fill="#6b7689">       SSH persona · real KEX, synthetic host</tspan></text>
+<text x="627" y="254" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"><tspan fill="#6cb6ff">[sottrace] </tspan><tspan fill="#c9d1d9">NET CONNECT 45.77.12.98:443 conn=9</tspan></text>
+<text x="627" y="273" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"><tspan fill="#f85149">       ⤴ non-RFC1918 · flagged likely-C2</tspan></text>
+<text x="627" y="292" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"><tspan fill="#6b7689">—— sottrace_netgraph.py ——</tspan></text>
+<text x="627" y="311" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"><tspan fill="#c9d1d9">peer 203.0.113.9 </tspan><tspan fill="#6cb6ff">─TLS :443→</tspan><tspan fill="#c9d1d9"> honeypot</tspan></text>
+<text x="627" y="330" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"><tspan fill="#c9d1d9">peer 203.0.113.9 </tspan><tspan fill="#6cb6ff">─SSH :22 →</tspan><tspan fill="#c9d1d9"> honeypot</tspan></text>
+<text x="627" y="349" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"><tspan fill="#c9d1d9">p1 </tspan><tspan fill="#f85149">─CONNECT→ peer 45.77.12.98:443</tspan></text>
+<text x="627" y="368" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"><tspan fill="#f85149">                    [ RED · likely C2 ]</tspan></text>
+<text x="627" y="387" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"></text>
+<text x="627" y="406" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"><tspan fill="#6b7689">every byte the attacker saw is recorded;</tspan></text>
+<text x="627" y="425" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"><tspan fill="#6b7689">its own beacon is the only thing that left.</tspan></text>
+<text x="555.0" y="56" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="11" fill="#f85149" text-anchor="middle" font-weight="bold">TRUTH GAP</text>
+<path d="M497,155.5 C555.0,155.5 555.0,136.5 613,136.5" fill="none" stroke="#f85149" stroke-width="1.3" stroke-dasharray="4 3" opacity="0.8"/>
+<circle cx="497" cy="155.5" r="2.6" fill="#3fb950"/>
+<circle cx="613" cy="136.5" r="2.6" fill="#f85149"/>
+<text x="555.0" y="143.0" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="9.5" fill="#f85149" text-anchor="middle">nginx-exact</text>
+<path d="M497,212.5 C555.0,212.5 555.0,212.5 613,212.5" fill="none" stroke="#f85149" stroke-width="1.3" stroke-dasharray="4 3" opacity="0.8"/>
+<circle cx="497" cy="212.5" r="2.6" fill="#3fb950"/>
+<circle cx="613" cy="212.5" r="2.6" fill="#f85149"/>
+<text x="555.0" y="209.5" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="9.5" fill="#f85149" text-anchor="middle">synthetic</text>
+<path d="M497,345.5 C555.0,345.5 555.0,250.5 613,250.5" fill="none" stroke="#f85149" stroke-width="1.3" stroke-dasharray="4 3" opacity="0.8"/>
+<circle cx="497" cy="345.5" r="2.6" fill="#3fb950"/>
+<circle cx="613" cy="250.5" r="2.6" fill="#f85149"/>
+<text x="555.0" y="295.0" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="9.5" fill="#f85149" text-anchor="middle">beacon seen</text>
+<text x="26" y="467" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="10.5" fill="#6b7689">Representative of real serial/sottrace output (see docs/captures/README.md). Regenerate live: tools/captures/capture.sh</text>
+</svg>

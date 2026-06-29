@@ -1,0 +1,196 @@
+--- a/src/video/wayland/SDL_waylandwindow.h
++++ b/src/video/wayland/SDL_waylandwindow.h
+@@ -151,6 +151,11 @@
+ extern void Wayland_InitWin(SDL_VideoData *data);
+ extern void Wayland_QuitWin(SDL_VideoData *data);
+ 
++/* sotOs · native wl_shm software framebuffer (no EGL). */
++extern int Wayland_CreateWindowFramebuffer(_THIS, SDL_Window *window, Uint32 *format, void **pixels, int *pitch);
++extern int Wayland_UpdateWindowFramebuffer(_THIS, SDL_Window *window, const SDL_Rect *rects, int numrects);
++extern void Wayland_DestroyWindowFramebuffer(_THIS, SDL_Window *window);
++
+ #endif /* SDL_waylandwindow_h_ */
+ 
+ /* vi: set ts=4 sw=4 expandtab: */
+--- a/src/video/wayland/SDL_waylandwindow.c
++++ b/src/video/wayland/SDL_waylandwindow.c
+@@ -2300,6 +2300,163 @@
+     SDL_DelHintCallback(SDL_HINT_VIDEO_EGL_ALLOW_TRANSPARENCY, EGLTransparencyChangedCallback, data);
+ }
+ 
++/* ====================================================================== */
++/* sotOs · native wl_shm software framebuffer.                            */
++/*                                                                        */
++/* Upstream SDL2's wayland backend has NO software framebuffer: software  */
++/* surfaces route through the generic GL texture framebuffer (needs EGL). */
++/* sotOs has no GPU/EGL, so add a real wl_shm CreateWindowFramebuffer/    */
++/* Update/Destroy trio (mirrors SDL_waylandmouse.c's cursor shm path).    */
++/* With SDL_HINT_FRAMEBUFFER_ACCELERATION=0, SDL_CreateWindowFramebuffer  */
++/* picks these driver hooks instead of the GL texture path, so a software */
++/* renderer (SDL_RENDERER_SOFTWARE) presents over wl_shm without EGL.     */
++/* ====================================================================== */
++#include <sys/mman.h>
++#include <fcntl.h>
++#include <unistd.h>
++#ifndef MFD_CLOEXEC
++#define MFD_CLOEXEC 0x0001U
++#endif
++
++typedef struct
++{
++    struct wl_buffer *buffer; /* single persistent XRGB8888 buffer */
++    void  *pixels;            /* mmap'd wl_shm pool (== *pixels) */
++    size_t size;
++    int    fd;
++    int    w, h, pitch;
++} Wayland_SHMFramebuffer;
++
++#define WAYLAND_SHM_FB_KEY "_sotos_wl_shm_fb"
++
++static int Wayland_SHMFile(size_t size)
++{
++    int fd = memfd_create("sotos-sdl-fb", MFD_CLOEXEC);
++    if (fd < 0) {
++        return -1;
++    }
++    if (ftruncate(fd, (off_t)size) < 0) {
++        close(fd);
++        return -1;
++    }
++    return fd;
++}
++
++int Wayland_CreateWindowFramebuffer(_THIS, SDL_Window *window, Uint32 *format,
++                                    void **pixels, int *pitch)
++{
++    SDL_WindowData *wind = (SDL_WindowData *)window->driverdata;
++    SDL_VideoData  *viddata = wind->waylandData;
++    Wayland_SHMFramebuffer *fb;
++    struct wl_shm_pool *pool;
++    int w, h, stride;
++    size_t size;
++
++    /* Free any previous framebuffer first (mirrors X11/offscreen). */
++    Wayland_DestroyWindowFramebuffer(_this, window);
++
++    SDL_GetWindowSizeInPixels(window, &w, &h);
++    *format = SDL_PIXELFORMAT_XRGB8888;
++    /* size_t throughout: w*bpp in int could overflow for an absurd width, and
++     * wl_shm pool size / stride go on the wire as int32 — bound to INT32_MAX so
++     * a huge window fails cleanly instead of silently truncating. (In practice
++     * orch caps a pool at ORCH_SHM_MAX_FRAMES*4K, so this is defense-in-depth.) */
++    {
++        size_t st = (((size_t)w * (size_t)SDL_BYTESPERPIXEL(*format)) + 3u) & ~(size_t)3u;
++        size = (size_t)h * st;
++        if (w <= 0 || h <= 0 || st == 0 || size == 0 || size > 0x7FFFFFFFu) {
++            return SDL_SetError("Wayland framebuffer size out of range (%dx%d)", w, h);
++        }
++        stride = (int)st;
++    }
++
++    fb = (Wayland_SHMFramebuffer *)SDL_calloc(1, sizeof(*fb));
++    if (!fb) {
++        return SDL_OutOfMemory();
++    }
++    fb->fd = Wayland_SHMFile(size);
++    if (fb->fd < 0) {
++        SDL_free(fb);
++        return SDL_SetError("Could not create wl_shm backing file");
++    }
++    fb->pixels = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fb->fd, 0);
++    if (fb->pixels == MAP_FAILED) {
++        close(fb->fd);
++        SDL_free(fb);
++        return SDL_SetError("Could not mmap wl_shm backing file");
++    }
++    fb->size = size;
++    fb->w = w;
++    fb->h = h;
++    fb->pitch = stride;
++
++    pool = wl_shm_create_pool(viddata->shm, fb->fd, (int32_t)size);
++    fb->buffer = wl_shm_pool_create_buffer(pool, 0, w, h, stride,
++                                           WL_SHM_FORMAT_XRGB8888);
++    wl_shm_pool_destroy(pool);
++
++    SDL_SetWindowData(window, WAYLAND_SHM_FB_KEY, fb);
++    *pixels = fb->pixels;
++    *pitch = stride;
++    return 0;
++}
++
++int Wayland_UpdateWindowFramebuffer(_THIS, SDL_Window *window,
++                                    const SDL_Rect *rects, int numrects)
++{
++    SDL_WindowData *wind = (SDL_WindowData *)window->driverdata;
++    SDL_VideoData  *viddata = wind->waylandData;
++    Wayland_SHMFramebuffer *fb =
++        (Wayland_SHMFramebuffer *)SDL_GetWindowData(window, WAYLAND_SHM_FB_KEY);
++    int i;
++
++    if (!fb || !fb->buffer) {
++        return SDL_SetError("No wl_shm framebuffer to update");
++    }
++
++    wl_surface_attach(wind->surface, fb->buffer, 0, 0);
++    if (rects && numrects > 0) {
++        for (i = 0; i < numrects; ++i) {
++            wl_surface_damage(wind->surface, rects[i].x, rects[i].y,
++                              rects[i].w, rects[i].h);
++        }
++    } else {
++        wl_surface_damage(wind->surface, 0, 0, fb->w, fb->h);
++    }
++    wl_surface_commit(wind->surface);
++    WAYLAND_wl_display_flush(viddata->display);
++    return 0;
++}
++
++void Wayland_DestroyWindowFramebuffer(_THIS, SDL_Window *window)
++{
++    Wayland_SHMFramebuffer *fb =
++        (Wayland_SHMFramebuffer *)SDL_GetWindowData(window, WAYLAND_SHM_FB_KEY);
++
++    SDL_WindowData *wind = (SDL_WindowData *)window->driverdata;
++    (void)_this;
++    if (!fb) {
++        return;
++    }
++    if (fb->buffer) {
++        wl_buffer_destroy(fb->buffer);
++    }
++    if (fb->pixels && fb->pixels != MAP_FAILED) {
++        munmap(fb->pixels, fb->size);
++    }
++    if (fb->fd >= 0) {
++        close(fb->fd);
++    }
++    SDL_free(fb);
++    SDL_SetWindowData(window, WAYLAND_SHM_FB_KEY, NULL);
++    /* Flush so wl_buffer.destroy reaches the compositor NOW.  libwayland would
++     * otherwise buffer it until the next op; on a host with a small fixed pool
++     * count that lag lets pools accumulate across rapid create/destroy/resize
++     * (the M4 gate).  Flushing here frees the backing promptly. */
++    if (wind && wind->waylandData)
++        WAYLAND_wl_display_flush(wind->waylandData->display);
++}
++
+ #endif /* SDL_VIDEO_DRIVER_WAYLAND */
+ 
+ /* vi: set ts=4 sw=4 expandtab: */
+--- a/src/video/wayland/SDL_waylandvideo.c
++++ b/src/video/wayland/SDL_waylandvideo.c
+@@ -277,6 +277,13 @@
+     device->SetWindowTitle = Wayland_SetWindowTitle;
+     device->GetWindowSizeInPixels = Wayland_GetWindowSizeInPixels;
+     device->DestroyWindow = Wayland_DestroyWindow;
++    /* sotOs · native wl_shm software framebuffer (no EGL/GL). With
++     * SDL_HINT_FRAMEBUFFER_ACCELERATION=0 these are used instead of the
++     * generic GL texture framebuffer, so SDL_RENDERER_SOFTWARE presents
++     * over wl_shm on a GPU-less host. */
++    device->CreateWindowFramebuffer = Wayland_CreateWindowFramebuffer;
++    device->UpdateWindowFramebuffer = Wayland_UpdateWindowFramebuffer;
++    device->DestroyWindowFramebuffer = Wayland_DestroyWindowFramebuffer;
+     device->SetWindowHitTest = Wayland_SetWindowHitTest;
+     device->FlashWindow = Wayland_FlashWindow;
+     device->HasScreenKeyboardSupport = Wayland_HasScreenKeyboardSupport;

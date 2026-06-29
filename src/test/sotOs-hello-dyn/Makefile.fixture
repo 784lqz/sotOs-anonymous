@@ -1,0 +1,15 @@
+# Host build recipe for hello_dyn.bin — a DYNAMICALLY-linked musl binary (N3/D1).
+# Needs the prebuilt musl-cross toolchain (musl.cc · x86_64-linux-musl-cross).
+#   export MUSL_CROSS=/path/to/x86_64-linux-musl-cross
+#   make -f Makefile.fixture
+MUSL_CROSS ?= /tmp/x86_64-linux-musl-cross
+CC := $(MUSL_CROSS)/bin/x86_64-linux-musl-gcc
+
+hello_dyn.bin: hello_dyn.c
+	$(CC) -O2 -o $@ $<
+	@echo "built $@ ($$(stat -c%s $@) bytes) · INTERP=$$(readelf -l $@ | grep -o '/lib/ld-musl[^]]*')"
+	@cp $(MUSL_CROSS)/x86_64-linux-musl/lib/libc.so ld-musl-x86_64.so.1 2>/dev/null || true
+
+.PHONY: clean
+clean:
+	rm -f hello_dyn.bin

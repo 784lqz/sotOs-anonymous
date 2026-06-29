@@ -1,0 +1,20 @@
+# Host build · musl-cross (musl.cc). export MUSL_CROSS=/path; make -f Makefile.fixture
+MUSL_CROSS ?= /tmp/x86_64-linux-musl-cross
+CC := $(MUSL_CROSS)/bin/x86_64-linux-musl-gcc
+
+all: libvfsprobe.so.1 vfsprobe.bin
+
+# real .so · SONAME deliberately UNSET so the binary's DT_NEEDED is the link name
+libvfsprobe.so.1: libvfsprobe.c
+	$(CC) -O2 -fPIC -shared -o $@ $<
+	ln -sf libvfsprobe.so.1 libvfsprobe.so
+	@echo "built $@ + symlink libvfsprobe.so -> libvfsprobe.so.1"
+
+# link via the .so symlink → DT_NEEDED = libvfsprobe.so (the link, not the target)
+vfsprobe.bin: vfsprobe.c libvfsprobe.so.1
+	$(CC) -O2 -fPIC -pie -o $@ $< -L. -l:libvfsprobe.so -Wl,-rpath,/lib
+	@echo "built $@ · NEEDED=$$(readelf -d $@ | grep NEEDED)"
+
+.PHONY: all clean
+clean:
+	rm -f libvfsprobe.so.1 libvfsprobe.so vfsprobe.bin

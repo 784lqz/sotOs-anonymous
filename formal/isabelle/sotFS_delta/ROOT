@@ -1,0 +1,14 @@
+session "SotFS_Delta" = "HOL" +
+  description "
+    sotFS-δ · Deception functor algebra · formal scaffolding.
+
+    Theories:
+      SotFS_Delta_State     · concrete + apparent file-system state record
+      SotFS_Delta_Functor   · deception functor F with tiers F0 / F1 / F2
+      SotFS_Delta_Soundness · soundness theorems (mostly sorry at δ-1)
+  "
+  options [document = false, quick_and_dirty = true]
+  theories
+    SotFS_Delta_State
+    SotFS_Delta_Functor
+    SotFS_Delta_Soundness

@@ -1,0 +1,43 @@
+--- a/external/seL4_libs/libsel4utils/src/vspace/bootstrap.c	2026-06-11 18:39:52.155993498 +0000
++++ b/external/seL4_libs/libsel4utils/src/vspace/bootstrap.c	2026-06-11 18:39:52.155993498 +0000
+@@ -31,7 +31,18 @@
+ #define MID_LEVEL_STRUCTURES_SIZE (NUM_MID_LEVEL_STRUCTURES * sizeof(vspace_mid_level_t))
+ #define BOTTOM_LEVEL_STRUCTURES_SIZE (NUM_BOTTOM_LEVEL_STRUCTURES * sizeof(vspace_bottom_level_t))
+ #define VSPACE_RESERVE_SIZE (MID_LEVEL_STRUCTURES_SIZE + BOTTOM_LEVEL_STRUCTURES_SIZE + sizeof(vspace_mid_level_t))
+-#define VSPACE_RESERVE_START (KERNEL_RESERVED_START - VSPACE_RESERVE_SIZE)
++/* sotOs · Wine M1 (Phase 5j) · the page-table bookkeeping shadow is bump-allocated
++ * (alloc_and_map bumps next_bootstrap_vaddr up from VSPACE_RESERVE_START), so the
++ * reserve can live anywhere contiguous — its position is NOT address-derived.  The
++ * upstream default parks it just below seL4_UserTop (≈[123TB,128TB)), which is
++ * EXACTLY where Windows-ABI guests (wine) and top-down Linux mmaps place the process
++ * heap and large reservations → RtlCreateHeap's 0x7ffffe000000 reserve hit
++ * is_available_range()==false and failed.  Relocate the shadow to a dead mid-space
++ * hole [1TB, ~2TB) — clear of every guest/orch region (LUCAS 1-5GB, orch self-views
++ * ~196GB, wine builtins ~123TB, wine heap/TEB ~128TB) — so the whole top of user
++ * space is available to guests.  (The long-term fix is LUCAS owning the guest vspace
++ * natively and retiring this shadow entirely.) */
++#define VSPACE_RESERVE_START (0x10000000000UL)
+ 
+ static int common_init(vspace_t *vspace, vka_t *vka, seL4_CPtr vspace_root,
+                        vspace_allocated_object_fn allocated_object_fn, void *cookie)
+@@ -55,8 +66,18 @@
+     /* reserve the kernel region, we do this by marking the
+      * top level entry as RESERVED */
+     if (!data->is_empty) {
+-        for (int i = TOP_LEVEL_INDEX(KERNEL_RESERVED_START);
+-             i < VSPACE_LEVEL_SIZE; i++) {
++        /* sotOs · Wine M1 (Phase 5j) · on x86_64 seL4_UserTop (0x7ffffffff000) sits
++         * MID top-level entry: entry 255 spans [127.5TB,128TB) but UserTop is at
++         * 128TB-4KB, so that entry is ~all USER space.  Reserving it wholesale (the
++         * upstream behaviour) sacrifices the top 0.5TB of user space — exactly where
++         * Windows-ABI guests (wine) place the process heap and top-down reservations
++         * (RtlCreateHeap at 0x7ffffe000000).  Only reserve top-level entries that lie
++         * FULLY above UserTop; if UserTop straddles an entry, leave that entry
++         * available (seL4_X86_Page_Map itself rejects any map at/above seL4_UserTop,
++         * so the real kernel boundary is still enforced). */
++        int first = TOP_LEVEL_INDEX(KERNEL_RESERVED_START);
++        if (KERNEL_RESERVED_START & MASK_UNSAFE(TOP_LEVEL_BITS_OFFSET)) first++;
++        for (int i = first; i < VSPACE_LEVEL_SIZE; i++) {
+             data->top_level->table[i] = RESERVED;
+         }
+     }

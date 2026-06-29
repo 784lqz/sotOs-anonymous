@@ -1,0 +1,62 @@
+diff --git a/src/api/syscall.c b/src/api/syscall.c
+index b4c2c6b..b8a1336 100644
+--- a/src/api/syscall.c
++++ b/src/api/syscall.c
+@@ -94,6 +94,10 @@ exception_t handleInterruptEntry(void)
+     return EXCEPTION_NONE;
+ }
+ 
++#if defined(CONFIG_ARCH_X86_64)
++extern word_t x64KS_user_rsp_save;  /* sotOs ADR-005 · defined in src/arch/x86/64/c_traps.c */
++#endif
++
+ exception_t handleUnknownSyscall(word_t w)
+ {
+ #ifdef CONFIG_PRINTING
+@@ -243,6 +247,14 @@ exception_t handleUnknownSyscall(word_t w)
+              */
+             return Arch_setTLSRegister(tls_base);
+         }
++#endif
++        /* sotOs Linux ABI compat (ADR-005): on x86_64 the `syscall`
++         * instruction does not save user RSP and seL4's handle_fastsyscall
++         * does not save it either before clobbering CPU RSP.  We saved it
++         * to x64KS_user_rsp_save in traps.S; copy it into TCB.registers[RSP]
++         * so the fault delivery and resume use the correct user RSP. */
++#if defined(CONFIG_ARCH_X86_64)
++        setRegister(NODE_STATE(ksCurThread), RSP, x64KS_user_rsp_save);
+ #endif
+         current_fault = seL4_Fault_UnknownSyscall_new(w);
+         handleFault(NODE_STATE(ksCurThread));
+diff --git a/src/arch/x86/64/c_traps.c b/src/arch/x86/64/c_traps.c
+index 03c8675..4de301f 100644
+--- a/src/arch/x86/64/c_traps.c
++++ b/src/arch/x86/64/c_traps.c
+@@ -13,6 +13,11 @@
+ 
+ #include <api/syscall.h>
+ 
++/* sotOs Linux ABI compat (ADR-005): user RSP at syscall trap.
++ * Populated by handle_fastsyscall in traps.S before LOAD_USER_CONTEXT
++ * clobbers it.  Read by handleUnknownSyscall to set TCB.registers[RSP]. */
++word_t x64KS_user_rsp_save;
++
+ #ifdef CONFIG_VTX
+ static void NORETURN vmlaunch_failed(word_t failInvalid, word_t failValid)
+ {
+diff --git a/src/arch/x86/64/traps.S b/src/arch/x86/64/traps.S
+index f477325..10bfb9d 100644
+--- a/src/arch/x86/64/traps.S
++++ b/src/arch/x86/64/traps.S
+@@ -594,6 +594,11 @@ END_FUNC(kernel_exception)
+ # the current RFLAGS (after saving) have been masked
+ # with IA32_FMASK.
+ BEGIN_FUNC(handle_fastsyscall)
++    # sotOs Linux ABI compat (ADR-005): save user RSP BEFORE LOAD_USER_CONTEXT
++    # clobbers it.  Used by handleUnknownSyscall to populate TCB.registers[RSP]
++    # so Linux binaries that depend on RSP being preserved across syscall
++    # (musl, glibc) work correctly.
++    movq    %rsp, x64KS_user_rsp_save(%rip)
+     LOAD_KERNEL_AS(rsp)
+     MAYBE_SWAPGS
+     LOAD_USER_CONTEXT

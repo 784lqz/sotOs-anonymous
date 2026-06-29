@@ -1,0 +1,19 @@
+diff --git a/src/dynapi/SDL_dynapi.h b/src/dynapi/SDL_dynapi.h
+index b5c9cbb..518d9d5 100644
+--- a/src/dynapi/SDL_dynapi.h
++++ b/src/dynapi/SDL_dynapi.h
+@@ -35,9 +35,11 @@
+    updated SDL can transparently take advantage of them, but your program will
+    not without this feature. Think hard before turning it off.
+ */
+-#ifdef SDL_DYNAMIC_API /* Tried to force it on the command line? */
+-#error Nope, you have to edit this file to force this off.
+-#endif
++/* sotOs · static-musl link: force the dynamic API OFF (direct calls · the lazy
++ * jump-table init wasn't running → every SDL call jumped through a NULL slot
++ * → rip=0x0 crash in SDL_SetMainReady). For Linux no platform #elif below
++ * matches, so this definition survives to the file's end. */
++#define SDL_DYNAMIC_API 0
+ 
+ #ifdef __APPLE__
+ #include "TargetConditionals.h"

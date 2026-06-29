@@ -1,0 +1,3 @@
+anomaly_test.bin: anomaly_test.S
+	gcc -no-pie -nostdlib -static -Wl,--build-id=none -o anomaly_test.bin anomaly_test.S
+	strip anomaly_test.bin

@@ -1,0 +1,25 @@
+# Static-musl build of doomgeneric + the sotOs shim → doom.bin.
+#   bash fetch-doomgeneric.sh   # first · vendors external/doomgeneric
+#   make -f Makefile.fixture
+MUSL_CROSS ?= /tmp/x86_64-linux-musl-cross
+CC  := $(MUSL_CROSS)/bin/x86_64-linux-musl-gcc
+TOP := $(shell git rev-parse --show-toplevel)
+DG  := $(TOP)/external/doomgeneric/doomgeneric
+SRC := $(filter-out $(DG)/doomgeneric_xlib.c $(DG)/doomgeneric_sdl.c \
+                    $(DG)/doomgeneric_allegro.c $(DG)/doomgeneric_soundtest.c \
+                    $(DG)/doomgeneric_emscripten.c $(DG)/doomgeneric_linuxvt.c \
+                    $(DG)/doomgeneric_soso.c $(DG)/doomgeneric_sosox.c \
+                    $(DG)/doomgeneric_win.c \
+                    $(DG)/i_sdlmusic.c $(DG)/i_sdlsound.c \
+                    $(DG)/i_allegromusic.c $(DG)/i_allegrosound.c,\
+        $(wildcard $(DG)/*.c))
+
+doom.bin: doomgeneric_sotos.c $(SRC)
+	$(CC) -static -no-pie -fno-pie -O2 -DNORMALUNIX -DLINUX -DDOOMGENERIC \
+	      -I$(DG) -o $@ doomgeneric_sotos.c $(SRC) -lm
+	strip $@
+	@echo "built $@ ($$(stat -c%s $@) bytes)"
+
+.PHONY: clean
+clean:
+	rm -f doom.bin

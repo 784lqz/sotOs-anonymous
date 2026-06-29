@@ -1,0 +1,162 @@
+diff --git a/src/i_video.c b/src/i_video.c
+index 6ff3b80..c23d47d 100644
+--- a/src/i_video.c
++++ b/src/i_video.c
+@@ -19,8 +19,12 @@
+ 
+ #include <stdlib.h>
+ #include <string.h>
++#include <unistd.h>   /* sotOs · write() */
++#include <fcntl.h>    /* sotOs · open() */
+ 
+ #include "SDL.h"
++#include <unistd.h>   /* sotOs · write() */
++#include <fcntl.h>    /* sotOs · open()/O_WRONLY */
+ #include "SDL_opengl.h"
+ 
+ #ifdef _WIN32
+@@ -97,7 +101,7 @@ int png_screenshots = 0;
+ 
+ // SDL video driver name
+ 
+-char *video_driver = "";
++char *video_driver = "dummy";   /* sotOs · headless */
+ 
+ // Window position:
+ 
+@@ -477,6 +481,109 @@ void I_GetEvent(void)
+     }
+ }
+ 
++// sotOs · real keyboard for Chocolate Doom.  SDL's dummy video driver emits
++// no key events, so read raw {linux_keycode, down} pairs from /dev/doomkbd
++// (orch fills it from the virtio-keyboard) and post Doom events directly.
++// The values returned ARE Doom's default control bindings (RCTRL=fire,
++// space=use, RALT=strafe, RSHIFT=run), so D_PostEvent feeds the engine as if
++// SDL had delivered them.  Mirrors the doomgeneric_sotos.c translation table.
++#define SK_RIGHT 0xae
++#define SK_LEFT  0xac
++#define SK_UP    0xad
++#define SK_DOWN  0xaf
++#define SK_ENTER 13
++#define SK_ESC   27
++#define SK_FIRE  0x9d   /* KEY_RCTRL */
++#define SK_USE   0x20   /* space */
++#define SK_RSHIFT 0xb6  /* run  (0x80+0x36) */
++#define SK_RALT  0xb8   /* strafe (0x80+0x38) */
++#define SK_TAB   9
++#define SK_BS    0x7f
++
++static int sotos_interactive = 0;   /* set once /dev/doomkbd opens (a kbd is present) */
++
++static int SotosXlateKey(int kc)
++{
++    switch (kc)
++    {
++        case 103: return SK_UP;      case 108: return SK_DOWN;
++        case 105: return SK_LEFT;    case 106: return SK_RIGHT;
++        case 28:  return SK_ENTER;   case 1:   return SK_ESC;
++        case 57:  return SK_USE;     case 15:  return SK_TAB;
++        case 29: case 97:  return SK_FIRE;     /* ctrl  = fire   */
++        case 56: case 100: return SK_RALT;     /* alt   = strafe */
++        case 42: case 54:  return SK_RSHIFT;   /* shift = run    */
++        case 14:  return SK_BS;
++        /* weapon-select digit row 1..0 (Linux kc 2..11) → ASCII '1'..'9','0' */
++        case 2: return '1'; case 3: return '2'; case 4: return '3';
++        case 5: return '4'; case 6: return '5'; case 7: return '6';
++        case 8: return '7'; case 9: return '8'; case 10: return '9';
++        case 11: return '0';
++        case 21: return 'y'; case 49: return 'n';   /* quit-confirm dialog */
++        default: return 0;
++    }
++}
++
++static void I_SotosReadKbd(void)
++{
++    static int sotos_kbd = -2;
++    if (sotos_kbd == -2)
++    {
++        sotos_kbd = open("/dev/doomkbd", O_RDONLY);  /* >=0 only when a kbd is present */
++        if (sotos_kbd >= 0)
++            sotos_interactive = 1;   /* let the player play past the gate's 600-frame cap */
++    }
++    if (sotos_kbd < 0)
++        return;
++    unsigned char buf[64];
++    int r = (int)read(sotos_kbd, buf, sizeof(buf));
++    for (int i = 0; i + 1 < r; i += 2)
++    {
++        int k = SotosXlateKey(buf[i]);
++        if (k == 0)
++            continue;
++        int down = buf[i + 1];
++        event_t ev;
++        ev.type  = down ? ev_keydown : ev_keyup;
++        ev.data1 = k;
++        ev.data2 = (down && k >= 0x20 && k < 0x7f) ? k : 0;  /* ASCII for menu/text */
++        ev.data3 = ev.data2;
++        D_PostEvent(&ev);
++    }
++}
++
++// sotOs · real mouse for Chocolate Doom.  SDL's dummy driver delivers no mouse
++// motion/buttons, so read 5-byte {dx(LE16),dy(LE16),btn} samples from
++// /dev/doommouse (orch derives them from the virtio-tablet) and post ev_mouse:
++// data1 = button bitfield (bit0 = left = fire), data2 = X turn.  Mirrors
++// doomgeneric_sotos.c (MOUSE_DIV scales tablet units → doom turn counts).
++#define SK_MOUSE_DIV 16
++
++static void I_SotosReadMouse(void)
++{
++    static int sotos_mouse = -2;
++    static int last_btn = 0;
++    if (sotos_mouse == -2)
++        sotos_mouse = open("/dev/doommouse", O_RDONLY);  /* >=0 only when a tablet is present */
++    if (sotos_mouse < 0)
++        return;
++    unsigned char mb[5];
++    if (read(sotos_mouse, mb, 5) < 5)
++        return;
++    int dx  = (short)(mb[0] | (mb[1] << 8));
++    int btn = mb[4] & 1;
++    if (dx == 0 && btn == 0 && last_btn == 0)
++        return;                       /* nothing changed · don't spam events */
++    last_btn = btn;
++    event_t ev;
++    ev.type  = ev_mouse;
++    ev.data1 = btn;                   /* bit0 = left mouse = fire (mouseb_fire=0) */
++    ev.data2 = dx / SK_MOUSE_DIV;     /* X axis = turn */
++    ev.data3 = 0;                     /* no forward/back from the mouse */
++    ev.data4 = ev.data5 = ev.data6 = 0;
++    D_PostEvent(&ev);
++}
++
+ //
+ // I_StartTic
+ //
+@@ -488,6 +595,8 @@ void I_StartTic (void)
+     }
+ 
+     I_GetEvent();
++    I_SotosReadKbd();     /* sotOs · feed virtio-keyboard into the engine */
++    I_SotosReadMouse();   /* sotOs · feed virtio-tablet (turn + fire) into the engine */
+ 
+     if (usemouse && !nomouse && window_focused)
+     {
+@@ -790,6 +899,16 @@ void I_FinishUpdate (void)
+     SDL_LockTexture(texture, &blit_rect, &argbbuffer->pixels,
+                     &argbbuffer->pitch);
+     SDL_LowerBlit(screenbuffer, &blit_rect, argbbuffer, &blit_rect);
++    /* sotOs headless present: write the 320x200 ARGB frame to /dev/fb0 (the
++     * LUCAS present handler hashes + dumps it). Bounded run for the gate. */
++    {
++        static int sotos_fb = -2; static int sotos_frames = 0;
++        if (sotos_fb == -2) sotos_fb = open("/dev/fb0", O_WRONLY);
++        if (sotos_fb >= 0)
++            write(sotos_fb, argbbuffer->pixels,
++                  (size_t)SCREENWIDTH * SCREENHEIGHT * 4);
++        if (++sotos_frames >= (sotos_interactive ? 100000 : 600)) exit(0);
++    }
+     SDL_UnlockTexture(texture);
+ 
+     // Make sure the pillarboxes are kept clear each frame.

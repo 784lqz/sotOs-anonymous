@@ -1,0 +1,7 @@
+[Unit]
+Description=Beta-demo no-op service
+[Service]
+Type=simple
+ExecStart=/bin/true
+[Install]
+WantedBy=multi-user.target

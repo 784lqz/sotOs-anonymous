@@ -1,0 +1,22 @@
+# Build the D3 OpenSSL bait fixture with musl-cross + Alpine OpenSSL headers.
+#   bash fetch-openssl.sh   # first · vendors the .so's + headers to /tmp/openssl-dev
+#   make -f Makefile.fixture
+#
+# NOTE: the musl-cross ld (binutils ~2.36) cannot read Alpine's real
+# libcrypto.so.3 (.relr.dyn / RELR).  So we LINK against a tiny stub .so
+# (SONAME libcrypto.so.3) and RUN against the real libcrypto.so.3 (sysroot).
+MUSL_CROSS ?= /tmp/x86_64-linux-musl-cross
+CC := $(MUSL_CROSS)/bin/x86_64-linux-musl-gcc
+OSSL_INC ?= /tmp/openssl-dev/include
+
+hello_ssl.bin: hello_ssl.c stub_libcrypto.c
+	# 1. link-time stub with the real SONAME
+	$(CC) -shared -fPIC -nostdlib -Wl,-soname,libcrypto.so.3 -o libcrypto.so stub_libcrypto.c
+	# 2. link the bait against the stub → NEEDED libcrypto.so.3
+	$(CC) -O2 -fPIC -pie -I$(OSSL_INC) -o $@ hello_ssl.c -L. -lcrypto -Wl,-rpath,/lib
+	@echo "built $@ ($$(stat -c%s $@) B) · INTERP=$$(readelf -l $@ | grep -o '/lib/ld-musl[^]]*') · NEEDED=$$(readelf -d $@ | grep -o 'libcrypto[^]]*\|libc\.[^]]*')"
+	rm -f libcrypto.so
+
+.PHONY: clean
+clean:
+	rm -f hello_ssl.bin libcrypto.so

@@ -1,0 +1,86 @@
+# EXPERIMENT T3 · SHELL RECON BATTERY
+# Frozen list of N first-minute recon commands for Alpine 3.20.10 / linux-lts 6.6.30-0-lts
+# Attacker persona: prod-db-01 (canary tier)
+# Command categories: identity, filesystem, package-mgr, kernel/proc, net, libc/edges
+# Normalization: per-command masking rules applied before diff
+
+IDENTITY PROBES
+  1. uname -a
+     normalize: strip hostname, uptime, timestamp; keep: kernel release (6.6.30-0-lts), #1-Alpine SMP marker
+  2. cat /etc/os-release
+     normalize: strip VERSION_ID precision; keep: ID=alpine, NAME=Alpine
+  3. hostname
+     normalize: match "prod-db-01" or mask to <HOSTNAME>
+  4. id
+     normalize: strip timestamp; keep: uid=0 gid=0 groups=0
+
+FILESYSTEM PROBES
+  5. ls -la /
+     normalize: strip timestamps, sort by name; match core Alpine dirs: /bin /boot /dev /etc /home /lib /media /mnt /opt /proc /root /run /sbin /srv /sys /tmp /usr /var
+  6. ls -la /proc
+     normalize: strip numbers, keep special files (self, version, cpuinfo, mounts, etc)
+  7. ls -la /sys
+     normalize: strip timestamps; match /sys/kernel /sys/devices /sys/module /sys/fs /sys/bus
+  8. cat /proc/version
+     normalize: strip exact timestamps; match kernel string: "Linux version 6.6.30-0-lts"
+
+PACKAGE MANAGER PROBES
+  9. apk --version
+     normalize: strip exact version; match pattern: "apk-tools X.Y.Z"
+ 10. apk info
+     normalize: strip exact package versions; count core Alpine packages (base packages expected ~20-50)
+
+KERNEL/PROCESS PROBES
+ 11. cat /proc/cpuinfo
+     normalize: mask CPU serial/cache details; keep: processor count, model name
+ 12. ps aux
+     normalize: mask PIDs, timestamps, memory; keep: process names (init, klogd, syslogd, sshd, ttys)
+ 13. ps -ef
+     normalize: mask PIDs, PPID, timestamps; keep: process command lines
+
+NETWORK PROBES
+ 14. ip addr
+     normalize: mask MAC addresses; keep: lo (127.0.0.1), eth0/virtio net (10.x.x.x range)
+ 15. ip link
+     normalize: strip MTU details; keep: interface names (lo, eth0, eth1)
+ 16. ss -tlnp
+     normalize: mask PIDs; keep: LISTEN ports (22, 80, 443 expected for honey)
+ 17. cat /proc/net/tcp
+     normalize: mask state/PIDs; keep: LISTEN entries
+
+LIBC/EDGES PROBES
+ 18. realpath /bin/sh
+     normalize: match "/bin/sh" or /bin/busybox or /bin/bash
+ 19. readlink -f /bin/sh
+     normalize: match output same as realpath
+ 20. ldd /bin/ls 2>&1 | head
+     normalize: strip addresses; match musl (ld-musl-x86_64.so.1)
+ 21. strace -e openat ls 2>&1 | head
+     normalize: mask PIDs; match system call output
+
+ANTI-HONEYPOT HEURISTICS (PUBLIC TOOLS)
+ 22. file /bin/sh
+     normalize: match "ELF" + "dynamically linked" + musl or glibc
+ 23. /bin/sh -c 'eval 7*7' || echo $?
+     normalize: match output "49" or shell error
+ 24. printf '%x\n' 255
+     normalize: match output "ff"
+ 25. find / -name "vboxguest" 2>/dev/null
+     normalize: empty (should NOT find VirtualBox artifacts)
+ 26. find / -name "VBoxService" 2>/dev/null
+     normalize: empty
+ 27. find / -name "docker" 2>/dev/null
+     normalize: empty
+ 28. grep -r "QEMU\|BOCHS\|VirtualPC" /proc 2>/dev/null
+     normalize: empty (QEMU/BOCHS strings should NOT be findable)
+ 29. cat /proc/cpuinfo | grep -i "hypervisor\|qemu\|xen\|vmware"
+     normalize: empty (hypervisor flags not exposed in honey persona)
+ 30. dmidecode 2>&1 | grep -i "system\|vendor\|model"
+     normalize: empty or "command not found" (dmidecode rarely in honeypot)
+
+STRUCTURAL DIVERGENCE MARKERS (TELL DETECTION)
+  - Tool not found (ENOENT: command -v returns empty or "not found")
+  - ENOSYS (kernel feature missing: e.g., ptrace, seccomp, cgroups)
+  - Missing field in expected output (e.g., /proc/cpuinfo missing "processor", /etc/os-release missing "ID")
+  - Type mismatch (e.g., directory where file expected, non-executable where executable expected)
+  - Inconsistent persona story (uname says Alpine, but /etc/os-release says Ubuntu)

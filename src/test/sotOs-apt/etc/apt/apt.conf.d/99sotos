@@ -1,0 +1,3 @@
+Acquire::Languages "none";
+APT::Install-Recommends "false";
+APT::Architecture "amd64";

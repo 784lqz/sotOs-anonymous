@@ -1,0 +1,15 @@
+# Host build recipe for wl_shm.bin.
+# Run manually on a Linux host:
+#   make -f Makefile.fixture
+CC      := gcc
+CFLAGS  := -Os -no-pie -fno-pie -nostdlib -static -fno-stack-protector \
+           -ffreestanding -fno-builtin -Wl,--build-id=none
+
+wl_shm.bin: wl_shm.c
+	$(CC) $(CFLAGS) -o $@ $<
+	strip $@
+	@echo "built $@ ($$(stat -c%s $@) bytes)"
+
+.PHONY: clean
+clean:
+	rm -f wl_shm.bin

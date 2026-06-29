@@ -1,0 +1,14 @@
+# Host build recipe for canary_read.bin.
+#   make -f Makefile.fixture
+CC      := gcc
+CFLAGS  := -Os -no-pie -fno-pie -nostdlib -static -fno-stack-protector \
+           -ffreestanding -fno-builtin -Wl,--build-id=none
+
+canary_read.bin: canary_read.c
+	$(CC) $(CFLAGS) -o $@ $<
+	strip $@
+	@echo "built $@ ($$(stat -c%s $@) bytes)"
+
+.PHONY: clean
+clean:
+	rm -f canary_read.bin

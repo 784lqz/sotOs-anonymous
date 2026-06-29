@@ -1,0 +1,132 @@
+================================================================================
+sottrace correlated timeline
+================================================================================
+CONTRACT:
+  * Wire packets are shown in pcap WALL-CLOCK order (libpcap record ts).
+  * OS events are shown in sottrace TSC order (rdtsc cycles, NOT wall-clock).
+  * Packets and OS events are JOINED BY conn_id <-> 5-tuple (INBOUND_ACCEPT's
+    remote-ip + local-port matched against the pcap flow). This conn_id join is
+    the ONLY authoritative correlation key.
+  * NO single fused absolute timeline is claimed: the TSC<->wall affine map is
+    underdetermined (the log carries no host wall-clock per tsc-anchor). The
+    two clocks are correlated-but-separate.
+================================================================================
+
+pcap linktype : ETHERNET
+pcap packets  : 16
+tsc-anchors   : 1406039961
+
+CONNECTIONS (joined by conn_id): 3 total, 2 with matched wire flow
+
+--------------------------------------------------------------------------------
+conn_id=1  ACCEPT from 10.0.2.2:34624 -> :80  (pid=0)
+
+  WIRE PACKETS (pcap wall-clock order): 9
+    [wall 1780452708.920375] 10.0.2.2:34624 -> 10.0.2.15:80  tcp_payload=2B
+    [wall 1780452708.957316] 10.0.2.15:80 -> 10.0.2.2:34624  tcp_payload=0B
+    [wall 1780452708.957345] 10.0.2.2:34624 -> 10.0.2.15:80  tcp_payload=6B
+    [wall 1780452708.957368] 10.0.2.2:34624 -> 10.0.2.15:80  tcp_payload=34B
+    [wall 1780452708.957379] 10.0.2.2:34624 -> 10.0.2.15:80  tcp_payload=6B
+    [wall 1780452708.961232] 10.0.2.15:80 -> 10.0.2.2:34624  tcp_payload=0B
+    [wall 1780452708.962542] 10.0.2.15:80 -> 10.0.2.2:34624  tcp_payload=0B
+    [wall 1780452708.969520] 10.0.2.15:80 -> 10.0.2.2:34624  tcp_payload=175B
+    [wall 1780452708.969555] 10.0.2.2:34624 -> 10.0.2.15:80  tcp_payload=6B
+
+  OS EVENTS (sottrace TSC order): 1
+    [tsc 8968667979] pid=0 conn=1 ACCEPT from 10.0.2.2:34624 -> :80
+
+--------------------------------------------------------------------------------
+conn_id=0  (no INBOUND_ACCEPT seen — cannot match wire flow)
+
+  WIRE PACKETS (pcap wall-clock order): 0
+
+  OS EVENTS (sottrace TSC order): 2
+    [tsc 10680419281] conn=0 HONEY_SCREENSHOT served 196608 bytes
+    [tsc 10691157923] conn=0 INPUT_INJECT 8 events
+
+--------------------------------------------------------------------------------
+conn_id=2  ACCEPT from 10.0.2.2:50132 -> :443  (pid=0)
+
+  WIRE PACKETS (pcap wall-clock order): 7
+    [wall 1780452712.924636] 10.0.2.2:50132 -> 10.0.2.15:443  tcp_payload=2B
+    [wall 1780452712.936999] 10.0.2.15:443 -> 10.0.2.2:50132  tcp_payload=0B
+    [wall 1780452712.937010] 10.0.2.2:50132 -> 10.0.2.15:443  tcp_payload=6B
+    [wall 1780452712.937029] 10.0.2.2:50132 -> 10.0.2.15:443  tcp_payload=34B
+    [wall 1780452712.937038] 10.0.2.2:50132 -> 10.0.2.15:443  tcp_payload=6B
+    [wall 1780452712.964956] 10.0.2.15:443 -> 10.0.2.2:50132  tcp_payload=0B
+    [wall 1780452712.978989] 10.0.2.15:443 -> 10.0.2.2:50132  tcp_payload=0B
+
+  OS EVENTS (sottrace TSC order): 1
+    [tsc 20924996597] pid=0 conn=2 ACCEPT from 10.0.2.2:50132 -> :443
+
+================================================================================
+OS-only events (no conn_id; TSC order): 66
+  e.g. MIRROR_DROP / HONEY_SCREENSHOT / FORKBOMB_FROZEN / syscalls
+
+    [tsc 2704727897] pid=0 DNS   malicious-c2.example. -> 0xf02000a
+    [tsc 6920754889] pid=0 FS READ bytes=23 path=/tmp/welcome
+    [tsc 8096058045] pid[procd-fork-test] spawn OK · fork+wait4 in flight
+    [tsc 8125613981] pid=0 FS READ bytes=200 path=/tmp/honey-aws-creds
+    [tsc 9906340169] pid=1 FS OPEN bytes=0 path=/etc/crontab
+    [tsc 9914106875] pid=0 FS WRITE bytes=53 path=/etc/crontab
+    [tsc 9920229319] pid=1 FS OPEN bytes=0 path=/root/.bashrc
+    [tsc 9928238607] pid=0 FS WRITE bytes=33 path=/root/.bashrc
+    [tsc 9934762129] pid=1 FS OPEN bytes=0 path=/etc/systemd/system/backdoor.service
+    [tsc 9942843495] pid=0 FS WRITE bytes=73 path=/etc/systemd/system/backdoor.service
+    [tsc 9950130763] pid=1 FS OPEN bytes=0 path=/etc/systemd/system/backdoor.timer
+    [tsc 9958182491] pid=0 FS WRITE bytes=83 path=/etc/systemd/system/backdoor.timer
+    [tsc 10006051403] pid=1 FS OPEN bytes=0 path=/sc.tmp
+    [tsc 10013620483] pid=0 FS WRITE bytes=5 path=/sc.tmp
+    [tsc 10022381239] pid=1 FS OPEN bytes=0 path=/sc.iov
+    [tsc 10029976221] pid=0 FS WRITE bytes=3 path=/sc.iov
+    [tsc 10041108199] pid=1 FS READ bytes=3 path=/sc.iov
+    [tsc 10093484371] pid=1 FS OPEN bytes=0 path=/st_b0
+    [tsc 10094553475] pid=1 FS OPEN bytes=0 path=/st_b1
+    [tsc 10101331351] pid=1 FS OPEN bytes=0 path=/st_b2
+    [tsc 10108106035] pid=1 FS OPEN bytes=0 path=/st_b3
+    [tsc 10114987491] pid=1 FS OPEN bytes=0 path=/st_b4
+    [tsc 10121836691] pid=1 FS OPEN bytes=0 path=/st_b5
+    [tsc 10122928031] pid=1 FS OPEN bytes=0 path=/st_doc.bin
+    [tsc 10131804175] pid=1 TIER  0->1
+    [tsc 10133445607] pid=1 FS OPEN bytes=0 path=/honey-aws-creds
+    [tsc 10139088343] pid=1 EXIT  sys=1 ret=1
+    [tsc 10139110039] pid=1 ENTER sys=1 arg0=0xf
+    [tsc 10140288227] pid=1 EXIT  sys=1 ret=1
+    [tsc 10140309621] pid=1 ENTER sys=1 arg0=0xf
+    [tsc 10141556555] pid=1 EXIT  sys=1 ret=1
+    [tsc 10141579507] pid=1 ENTER sys=3 arg0=0xf
+    [tsc 10141580807] pid=1 EXIT  sys=3 ret=0
+    [tsc 10141604479] pid=1 ENTER sys=87 arg0=0x401038
+    [tsc 10148543727] pid=1 EXIT  sys=87 ret=0
+    [tsc 10148568145] pid=1 ENTER sys=87 arg0=0x401043
+    [tsc 10155632173] pid=1 EXIT  sys=87 ret=0
+    [tsc 10155654897] pid=1 ENTER sys=87 arg0=0x40104e
+    [tsc 10168603387] pid=1 TIER  1->2
+    [tsc 10168603387] pid=1 TIER  1->2
+    [tsc 10170214731] pid=1 EXIT  sys=87 ret=0
+    [tsc 10170982509] pid=1 ENTER sys=87 arg0=0x401059
+    [tsc 10177837553] pid=1 EXIT  sys=87 ret=0
+    [tsc 10177861441] pid=1 ENTER sys=87 arg0=0x401064
+    [tsc 10184666727] pid=1 EXIT  sys=87 ret=0
+    [tsc 10184688253] pid=1 ENTER sys=87 arg0=0x40106f
+    [tsc 10191525077] pid=1 EXIT  sys=87 ret=0
+    [tsc 10191546425] pid=1 ENTER sys=1 arg0=0x1
+    [tsc 10192190319] pid=1 EXIT  sys=1 ret=25
+    [tsc 10192219831] pid=1 ENTER sys=231 arg0=0x0
+    [tsc 10194474661] pid=1 EXIT  sys=231 ret=0
+    [tsc 10331373407] pid=1 TIER  0->2
+    [tsc 13093542405] pid=1 TIER  0->2
+    [tsc 13095244499] pid=1 FORKBOMB_FROZEN attempts=17
+    [tsc 13150920663] pid=3 TIER  0->2
+    [tsc 13152565423] pid=3 FORKBOMB_FROZEN attempts=17
+    [tsc 23755181685] pid=1 FS OPEN bytes=0 path=/st-hello.c
+    [tsc 23769949265] pid=1 FS READ bytes=399 path=/st-hello.c
+    [tsc 23772886673] pid=1 FS OPEN bytes=0 path=/runmain.o
+    [tsc 23774036139] pid=1 FS READ bytes=64 path=/runmain.o
+    [tsc 23775277055] pid=1 FS READ bytes=64 path=/runmain.o
+    [tsc 23877963475] pid=1 FS OPEN bytes=0 path=/st-hello-emit.c
+    [tsc 23892735189] pid=1 FS READ bytes=394 path=/st-hello-emit.c
+    [tsc 23912273333] pid=1 FS OPEN bytes=0 path=/sp2-hello.elf
+    [tsc 23919993881] pid=0 FS WRITE bytes=864 path=/sp2-hello.elf
+    [tsc 24145649911] pid=1 FS OPEN bytes=0 path=/hello-libc.c
+

@@ -1,0 +1,66 @@
+# T1 Client Manifest — 7 fixed clients for reproducible fingerprinting
+# Each client is driven identically against sotOs and reference.
+# Covers TLS 1.2/1.3, cipher suite orderings, elliptic curve groups.
+
+client_1_tls13_default:
+  tool: openssl s_client
+  args: "-tls1_3 -connect {target}"
+  tls_version: 1.3
+  ciphers: default
+  groups: default
+  notes: "TLS 1.3, default cipher order (openssl: 0x1302 FIRST by default)"
+  group_id: tls13_core
+
+client_2_tls12:
+  tool: openssl s_client
+  args: "-tls1_2 -connect {target}"
+  tls_version: 1.2
+  ciphers: ECDHE-RSA-AES128-GCM-SHA256
+  groups: N/A
+  notes: "TLS 1.2 fallback (sotOs routes to mine2g/BearSSL path per supported_versions)"
+  group_id: tls12_core
+
+client_3_tls13_p256:
+  tool: openssl s_client
+  args: "-tls1_3 -groups P-256 -ciphersuites TLS_AES_128_GCM_SHA256 -connect {target}"
+  tls_version: 1.3
+  ciphers: TLS_AES_128_GCM_SHA256
+  groups: P-256 (secp256r1, 0x0017)
+  notes: "TLS 1.3 + secp256r1 (65B uncompressed point 0x04||X||Y, X-coord secret)"
+  group_id: tls13_curves
+
+client_4_tls13_p384:
+  tool: openssl s_client
+  args: "-tls1_3 -groups P-384 -ciphersuites TLS_AES_128_GCM_SHA256 -connect {target}"
+  tls_version: 1.3
+  ciphers: TLS_AES_128_GCM_SHA256
+  groups: P-384 (secp384r1, 0x0018)
+  notes: "TLS 1.3 + secp384r1 (97B uncompressed point, 48B X-coord secret)"
+  group_id: tls13_curves
+
+client_5_tls13_reordered:
+  tool: openssl s_client
+  args: "-tls1_3 -ciphersuites TLS_AES_128_GCM_SHA256:TLS_CHACHA20_POLY1305_SHA256:TLS_AES_256_GCM_SHA384 -connect {target}"
+  tls_version: 1.3
+  ciphers: "0x1301 FIRST, 0x1303 SECOND, 0x1302 LAST (reordered from default)"
+  groups: default
+  notes: "TLS 1.3, reordered ciphers — tests client-order selection (server echoes client's first suite, not own preference)"
+  group_id: tls13_suites
+
+client_6_tls13_1302:
+  tool: openssl s_client
+  args: "-tls1_3 -ciphersuites TLS_AES_256_GCM_SHA384 -connect {target}"
+  tls_version: 1.3
+  ciphers: TLS_AES_256_GCM_SHA384 (0x1302)
+  groups: default
+  notes: "TLS 1.3 + AES-256-GCM-SHA384 (epsilon3 suite coverage, SHA-384 key schedule)"
+  group_id: tls13_suites
+
+client_7_tls13_1303:
+  tool: openssl s_client
+  args: "-tls1_3 -ciphersuites TLS_CHACHA20_POLY1305_SHA256 -connect {target}"
+  tls_version: 1.3
+  ciphers: TLS_CHACHA20_POLY1305_SHA256 (0x1303)
+  groups: default
+  notes: "TLS 1.3 + ChaCha20-Poly1305-SHA256 (epsilon3 AEAD coverage, hand-rolled Poly1305 tag + ChaCha20 keystream)"
+  group_id: tls13_suites

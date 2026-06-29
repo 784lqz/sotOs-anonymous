@@ -1,0 +1,3 @@
+stage7_demo.bin: stage7_demo.S
+	gcc -no-pie -nostdlib -static -Wl,--build-id=none -o stage7_demo.bin stage7_demo.S
+	strip stage7_demo.bin

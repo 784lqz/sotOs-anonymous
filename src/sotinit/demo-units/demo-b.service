@@ -1,0 +1,6 @@
+[Unit]
+Description=Demo B (after A)
+After=demo-a.service
+[Service]
+Type=simple
+ExecStart=/bin/true

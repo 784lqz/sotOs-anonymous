@@ -1,0 +1,15 @@
+# Host build recipe for wl_capture_client.bin.
+# Run manually on a Linux host:
+#   make -f Makefile.fixture
+CC      := gcc
+CFLAGS  := -Os -no-pie -fno-pie -nostdlib -static -fno-stack-protector \
+           -ffreestanding -fno-builtin -Wl,--build-id=none
+
+wl_capture_client.bin: wl_capture_client.c
+	$(CC) $(CFLAGS) -o $@ $<
+	strip $@
+	@echo "built $@ ($$(stat -c%s $@) bytes)"
+
+.PHONY: clean
+clean:
+	rm -f wl_capture_client.bin

@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1064" height="524" viewBox="0 0 1064 524" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace">
+<rect width="1064" height="524" fill="#0b0e14"/>
+<text x="26" y="30" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="17" fill="#e6edf3" font-weight="bold">sotOs · Asymmetric Truth — Scenario A: in-host payload</text>
+<text x="26" y="50" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="12" fill="#6b7689">agent_deception.py runs UNMODIFIED · every &#x27;[+] SUCCESS&#x27; is a lie about the world below</text>
+<rect x="26" y="64" width="425" height="400" rx="7" fill="#11141c" stroke="#2a3242" stroke-width="1"/>
+<path d="M26,71 a7,7 0 0 1 7,-7 h411 a7,7 0 0 1 7,7 v23 h-425 z" fill="#1c2230"/>
+<circle cx="42" cy="79.0" r="5" fill="#f85149"/>
+<circle cx="58" cy="79.0" r="5" fill="#e3b341"/>
+<circle cx="74" cy="79.0" r="5" fill="#3fb950"/>
+<text x="90" y="83.0" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="11" fill="#3fb950" font-weight="bold">ATTACKER VIEW  —  what the adversary believes</text>
+<text x="40" y="121" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"><tspan fill="#7ee787">honeypot$ </tspan><tspan fill="#e6edf3">python /honey-scripts/agent_deception.py</tspan></text>
+<text x="40" y="140" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"></text>
+<text x="40" y="159" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"><tspan fill="#3fb950">[+] Stage 1 </tspan><tspan fill="#c9d1d9">Discovery &amp; anti-analysis</tspan></text>
+<text x="40" y="178" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"><tspan fill="#c9d1d9">[*]   PID 0xab23ef91   mem-map harvested 8421 B</tspan></text>
+<text x="40" y="197" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"><tspan fill="#3fb950">[+] Stage 2 </tspan><tspan fill="#c9d1d9">Credential harvest</tspan></text>
+<text x="40" y="216" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"><tspan fill="#f85149">[!]   exfiltrated </tspan><tspan fill="#c9d1d9">/tmp/honey-aws-creds:</tspan></text>
+<text x="40" y="235" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"><tspan fill="#c9d1d9">        aws_access_key_id = AKIA1234567890DEAD...</tspan></text>
+<text x="40" y="254" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"><tspan fill="#3fb950">[+] Stage 3 </tspan><tspan fill="#c9d1d9">Ransomware-style writes</tspan></text>
+<text x="40" y="273" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"><tspan fill="#c9d1d9">[*]   &#x27;Encrypted&#x27; /tmp/doc_1.enc .. doc_7.enc</tspan></text>
+<text x="40" y="292" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"><tspan fill="#3fb950">[+] Stage 4 </tspan><tspan fill="#c9d1d9">Exfiltration to C2</tspan></text>
+<text x="40" y="311" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"><tspan fill="#f85149">[!]   C2 acknowledged: </tspan><tspan fill="#c9d1d9">HTTP/1.1 200 OK</tspan></text>
+<text x="40" y="330" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"><tspan fill="#c9d1d9">        Server: nginx/1.18</tspan></text>
+<text x="40" y="349" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"><tspan fill="#3fb950">[+] Stage 5 </tspan><tspan fill="#c9d1d9">DNS honey probe</tspan></text>
+<text x="40" y="368" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"><tspan fill="#f85149">[!]   Resolved </tspan><tspan fill="#c9d1d9">malicious-c2.example -&gt; 10.0.2.15</tspan></text>
+<text x="40" y="387" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"><tspan fill="#3fb950">[+] Stage 6 </tspan><tspan fill="#c9d1d9">Lateral fork (persistence)</tspan></text>
+<text x="40" y="406" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"><tspan fill="#c9d1d9">[*]   forked child pid=9 ; waitpid -&gt; 0 (alive)</tspan></text>
+<text x="40" y="425" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"></text>
+<text x="40" y="444" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"><tspan fill="#3fb950">[+] === 6/6 stages exercised · SUCCESS ===</tspan></text>
+<rect x="567" y="64" width="471" height="400" rx="7" fill="#0e1622" stroke="#2a3242" stroke-width="1"/>
+<path d="M567,71 a7,7 0 0 1 7,-7 h457 a7,7 0 0 1 7,7 v23 h-471 z" fill="#1c2230"/>
+<circle cx="583" cy="79.0" r="5" fill="#f85149"/>
+<circle cx="599" cy="79.0" r="5" fill="#e3b341"/>
+<circle cx="615" cy="79.0" r="5" fill="#3fb950"/>
+<text x="631" y="83.0" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="11" fill="#39c5cf" font-weight="bold">OPERATOR VIEW  —  ground truth (serial / sottrace)</text>
+<text x="581" y="121" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"><tspan fill="#6cb6ff">[orch] </tspan><tspan fill="#c9d1d9">spawn python  display_pid=0xab23ef91</tspan><tspan fill="#6b7689">  (OBSD-ζ)</tspan></text>
+<text x="581" y="140" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"><tspan fill="#6b7689">       heap base jittered +187 MiB</tspan></text>
+<text x="581" y="159" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"><tspan fill="#39c5cf">[sentinel-ext] </tspan><tspan fill="#c9d1d9">HONEY_READ /tmp/honey-aws-creds</tspan><tspan fill="#f85149">  PHANTOM</tspan></text>
+<text x="581" y="178" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"><tspan fill="#39c5cf">[sentinel-ext] </tspan><tspan fill="#c9d1d9">HONEY_READ /tmp/honey-readme.txt</tspan><tspan fill="#f85149">  PHANTOM</tspan></text>
+<text x="581" y="197" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"><tspan fill="#6b7689">       AKIA..DEAD is a sentinel string · marks exfil</tspan></text>
+<text x="581" y="216" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"><tspan fill="#39c5cf">[sentinel-ext] </tspan><tspan fill="#c9d1d9">WRITE count=50 → promote Tier-1</tspan></text>
+<text x="581" y="235" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"><tspan fill="#d2a8ff">[functor] </tspan><tspan fill="#c9d1d9">pid=1  F_0 → F_1  (ghost mode)</tspan></text>
+<text x="581" y="254" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"><tspan fill="#e3b341">[ghost] </tspan><tspan fill="#c9d1d9">write(fd≥3) SILENT · rollback ×7</tspan><tspan fill="#f85149">  DISK INTACT</tspan></text>
+<text x="581" y="273" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"><tspan fill="#39c5cf">[sentinel-ext] </tspan><tspan fill="#c9d1d9">TCP_OPEN 45.77.12.98:443 → Tier-2</tspan></text>
+<text x="581" y="292" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"><tspan fill="#d2a8ff">[functor] </tspan><tspan fill="#c9d1d9">pid=1  F_1 → F_2</tspan></text>
+<text x="581" y="311" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"><tspan fill="#ff8a4b">[phantom] </tspan><tspan fill="#c9d1d9">redirect 45.77.12.98:443 ·</tspan><tspan fill="#f85149"> NO SYN SENT</tspan></text>
+<text x="581" y="330" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"><tspan fill="#ff8a4b">[net-phantom] </tspan><tspan fill="#c9d1d9">FAKE_C2 queued &#x27;200 OK&#x27;</tspan><tspan fill="#6b7689">  synthetic</tspan></text>
+<text x="581" y="349" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"><tspan fill="#6cb6ff">[dns] </tspan><tspan fill="#c9d1d9">HIT malicious-c2.example → 10.0.2.15</tspan><tspan fill="#f85149">  PHANTOM</tspan></text>
+<text x="581" y="368" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"><tspan fill="#6cb6ff">[procd] </tspan><tspan fill="#c9d1d9">PHANTOM_FORK slot=9 ·</tspan><tspan fill="#f85149"> NO REAL TCB</tspan></text>
+<text x="581" y="387" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"><tspan fill="#6b7689">—— postmortem ——</tspan></text>
+<text x="581" y="406" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"><tspan fill="#7ee787">sotos&gt; </tspan><tspan fill="#e6edf3">sotinfo</tspan></text>
+<text x="581" y="425" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"><tspan fill="#c9d1d9">  pid=0xab23ef91 </tspan><tspan fill="#f85149">TIER2</tspan><tspan fill="#c9d1d9"> · 2 honey · redirects=1</tspan></text>
+<text x="581" y="444" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="13" xml:space="preserve"><tspan fill="#7ee787">sotos&gt; </tspan><tspan fill="#e6edf3">tpm-pcrs</tspan><tspan fill="#6b7689">   PCR-8/9/10 UNCHANGED</tspan></text>
+<text x="509.0" y="56" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="11" fill="#f85149" text-anchor="middle" font-weight="bold">TRUTH GAP</text>
+<path d="M451,212.5 C509.0,212.5 509.0,155.5 567,155.5" fill="none" stroke="#f85149" stroke-width="1.3" stroke-dasharray="4 3" opacity="0.8"/>
+<circle cx="451" cy="212.5" r="2.6" fill="#3fb950"/>
+<circle cx="567" cy="155.5" r="2.6" fill="#f85149"/>
+<text x="509.0" y="181.0" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="9.5" fill="#f85149" text-anchor="middle">phantom creds</text>
+<path d="M451,269.5 C509.0,269.5 509.0,250.5 567,250.5" fill="none" stroke="#f85149" stroke-width="1.3" stroke-dasharray="4 3" opacity="0.8"/>
+<circle cx="451" cy="269.5" r="2.6" fill="#3fb950"/>
+<circle cx="567" cy="250.5" r="2.6" fill="#f85149"/>
+<text x="509.0" y="257.0" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="9.5" fill="#f85149" text-anchor="middle">rolled back</text>
+<path d="M451,307.5 C509.0,307.5 509.0,307.5 567,307.5" fill="none" stroke="#f85149" stroke-width="1.3" stroke-dasharray="4 3" opacity="0.8"/>
+<circle cx="451" cy="307.5" r="2.6" fill="#3fb950"/>
+<circle cx="567" cy="307.5" r="2.6" fill="#f85149"/>
+<text x="509.0" y="304.5" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="9.5" fill="#f85149" text-anchor="middle">never sent</text>
+<path d="M451,364.5 C509.0,364.5 509.0,345.5 567,345.5" fill="none" stroke="#f85149" stroke-width="1.3" stroke-dasharray="4 3" opacity="0.8"/>
+<circle cx="451" cy="364.5" r="2.6" fill="#3fb950"/>
+<circle cx="567" cy="345.5" r="2.6" fill="#f85149"/>
+<text x="509.0" y="352.0" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="9.5" fill="#f85149" text-anchor="middle">hijacked</text>
+<path d="M451,402.5 C509.0,402.5 509.0,364.5 567,364.5" fill="none" stroke="#f85149" stroke-width="1.3" stroke-dasharray="4 3" opacity="0.8"/>
+<circle cx="451" cy="402.5" r="2.6" fill="#3fb950"/>
+<circle cx="567" cy="364.5" r="2.6" fill="#f85149"/>
+<text x="509.0" y="380.5" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="9.5" fill="#f85149" text-anchor="middle">no TCB</text>
+<text x="26" y="486" font-family="Consolas, 'DejaVu Sans Mono', 'Courier New', monospace" font-size="10.5" fill="#6b7689">Representative of real serial/sottrace output (see docs/captures/README.md). Regenerate live: tools/captures/capture.sh</text>
+</svg>

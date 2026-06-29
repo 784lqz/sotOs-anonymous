@@ -1,0 +1,15 @@
+# Host build recipe for wayland_connect.bin.
+# Run manually on a Linux host:
+#   make -f Makefile.fixture
+CC      := gcc
+CFLAGS  := -Os -no-pie -fno-pie -nostdlib -static -fno-stack-protector \
+           -ffreestanding -fno-builtin -Wl,--build-id=none
+
+wayland_connect.bin: wayland_connect.c
+	$(CC) $(CFLAGS) -o $@ $<
+	strip $@
+	@echo "built $@ ($$(stat -c%s $@) bytes)"
+
+.PHONY: clean
+clean:
+	rm -f wayland_connect.bin

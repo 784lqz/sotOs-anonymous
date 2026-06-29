@@ -1,0 +1,3 @@
+syscall_test.bin: syscall_test.S
+	gcc -no-pie -nostdlib -static -Wl,--build-id=none -o syscall_test.bin syscall_test.S
+	strip syscall_test.bin

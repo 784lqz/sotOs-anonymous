@@ -1,0 +1,14 @@
+# Host build recipe for egress_probe.bin.
+#   make -f Makefile.fixture
+CC      := gcc
+CFLAGS  := -Os -no-pie -fno-pie -nostdlib -static -fno-stack-protector \
+           -ffreestanding -fno-builtin -Wl,--build-id=none
+
+egress_probe.bin: egress_probe.c
+	$(CC) $(CFLAGS) -o $@ $<
+	strip $@
+	@echo "built $@ ($$(stat -c%s $@) bytes)"
+
+.PHONY: clean
+clean:
+	rm -f egress_probe.bin
